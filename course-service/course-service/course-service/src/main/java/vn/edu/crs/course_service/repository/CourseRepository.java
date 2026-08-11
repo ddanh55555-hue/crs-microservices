@@ -2,8 +2,8 @@ package vn.edu.crs.course_service.repository;
 
 import vn.edu.crs.course_service.entity.Course;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-// Bắt buộc phải có <Course, Long> ở đoạn extends này
+@Repository
 public interface CourseRepository extends JpaRepository<Course, Long> {
-    boolean existsByTenMonHocIgnoreCase(String tenMonHoc);
 }

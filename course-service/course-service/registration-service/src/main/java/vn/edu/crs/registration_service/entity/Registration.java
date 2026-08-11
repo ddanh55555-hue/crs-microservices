@@ -4,14 +4,19 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name = "registrations")
+@Table(name = "registration")
 @Data
 public class Registration {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String studentId;
+    @Column(name = "student_id")
+    private Long studentId;
+
+    @Column(name = "course_id")
     private Long courseId;
-    private String status; // REGISTERED, CANCELLED
+
+    @Column(name = "status")
+    private String status; // DA_DANG_KY, DA_HUY
 }

@@ -1,45 +1,40 @@
 package vn.edu.crs.course_service.controller;
 
-import vn.edu.crs.course_service.dto.CourseDTO;
-import vn.edu.crs.course_service.service.CourseService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import vn.edu.crs.course_service.dto.CourseDTO;
+import vn.edu.crs.course_service.entity.Course;
+import vn.edu.crs.course_service.service.CourseService;
 
 @RestController
 @RequestMapping("/courses")
-@RequiredArgsConstructor
 public class CourseController {
 
-    private final CourseService courseService;
-
-    @GetMapping
-    public List<CourseDTO> getAll() {
-        return courseService.getAll();
-    }
-
-    @GetMapping("/{id}")
-    public CourseDTO getById(@PathVariable Long id) {
-        return courseService.getById(id);
-    }
+    @Autowired
+    private CourseService courseService;
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public CourseDTO create(@Valid @RequestBody CourseDTO dto) {
-        return courseService.create(dto);
-    }
+    public ResponseEntity<CourseDTO> createCourse(@RequestBody CourseDTO courseDTO) {
+        // 1. Map từ DTO sang Entity
+        Course course = new Course();
+        course.setCode(courseDTO.getCode());
+        course.setName(courseDTO.getName());
+        course.setDescription(courseDTO.getDescription());
+        course.setCredits(courseDTO.getCredits());
 
-    @PutMapping("/{id}")
-    public CourseDTO update(@PathVariable Long id, @Valid @RequestBody CourseDTO dto) {
-        return courseService.update(id, dto);
-    }
+        // 2. Lưu vào Database qua Service
+        Course savedCourse = courseService.createCourse(course);
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
-        courseService.delete(id);
+        // 3. Map ngược lại DTO để trả về Response
+        CourseDTO responseDTO = new CourseDTO();
+        responseDTO.setId(savedCourse.getId());
+        responseDTO.setCode(savedCourse.getCode());
+        responseDTO.setName(savedCourse.getName());
+        responseDTO.setDescription(savedCourse.getDescription());
+        responseDTO.setCredits(savedCourse.getCredits());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 }
