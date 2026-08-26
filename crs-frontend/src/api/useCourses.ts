@@ -1,42 +1,34 @@
-// path: crs-frontend/src/api/useCourses.ts
 import { useState, useEffect, useCallback } from 'react';
-import { courseApi } from './courseApi';
+import axiosClient from './axiosClient';
 import type { Course } from '../types/course';
 
-export type LoadState = 'loading' | 'success' | 'empty' | 'error';
+export type LoadState = 'loading' | 'error' | 'empty' | 'success';
 
-export function useCourses(keyword: string = '') {
+export function useCourses(keyword: string = '', page: number = 0) {
     const [courses, setCourses] = useState<Course[]>([]);
+    const [totalPages, setTotalPages] = useState(1);
     const [state, setState] = useState<LoadState>('loading');
     const [errorMessage, setErrorMessage] = useState('');
 
     const fetchCourses = useCallback(async () => {
         setState('loading');
         try {
-            const response = await courseApi.getCourses(keyword);
-
-            // XỬ LÝ AN TOÀN: Đảm bảo luôn lấy ra mảng (phòng hờ API trả về phân trang dạng object)
-            const rawData = response.data;
-            const courseList: Course[] = Array.isArray(rawData)
-                ? rawData
-                : (rawData as any).content || [];
-
-            setCourses(courseList);
-            if (courseList.length === 0) {
-                setState('empty');
-            } else {
-                setState('success');
-            }
-        } catch (err: unknown) {
-            const error = err as { message?: string };
-            setErrorMessage(error.message || 'Đã xảy ra lỗi khi tải danh sách.');
+            const res = await axiosClient.get('/api/courses', {
+                params: { keyword, page, size: 10 },
+            });
+            const data = res.data.content || res.data;
+            setCourses(data);
+            setTotalPages(res.data.totalPages || 1);
+            setState(data.length === 0 ? 'empty' : 'success');
+        } catch (err) {
+            setErrorMessage('Khong the tai danh sach mon hoc.');
             setState('error');
         }
-    }, [keyword]);
+    }, [keyword, page]);
 
     useEffect(() => {
         fetchCourses();
     }, [fetchCourses]);
 
-    return { courses, state, errorMessage, refetch: fetchCourses };
+    return { courses, totalPages, state, errorMessage, refetch: fetchCourses };
 }
