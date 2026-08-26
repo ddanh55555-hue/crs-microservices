@@ -1,40 +1,57 @@
 // path: crs-frontend/src/App.tsx
-// purpose: trang danh sach mon hoc hoan chinh, thay the component test tam cua Buoi 5,
-// phoi hop SearchBox + CourseList + Pagination + useCourses
 import { useState } from 'react';
-import { useCourses } from './api/useCourses'; // Bổ sung import hook useCourses
-
-import SearchBox from './components/SearchBox';
+import { useCourses } from './api/useCourses';
+import { courseApi } from './api/courseApi';
 import CourseList from './components/CourseList';
-import Pagination from './components/Pagination';
+import CourseForm from './components/CourseForm';
+import SearchBox from './components/SearchBox';
+import type { Course, CourseFormValues } from './types/course';
 
-function App() {
+export default function App() {
     const [keyword, setKeyword] = useState('');
-    const [page, setPage] = useState(0);
+    const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+    const { courses, state, errorMessage, refetch } = useCourses(keyword);
 
-    // Bổ sung dòng gọi hook useCourses để lấy biến dữ liệu và các hàm quản lý trạng thái
-    const { courses, totalPages, state, errorMessage, refetch } = useCourses(keyword, page);
+    const handleSaveCourse = async (values: CourseFormValues) => {
+        if (editingCourse) {
+            // Truyền đủ 2 tham số: (id, values)
+            await courseApi.updateCourse(editingCourse.id, values);
+            setEditingCourse(null);
+        } else {
+            await courseApi.createCourse(values);
+        }
+        refetch();
+    };
 
-    const handleSearch = (newKeyword: string) => {
-        setKeyword(newKeyword);
-        setPage(0); // mỗi lần tìm kiếm mới, luôn quay về trang đầu
+    const handleDeleteCourse = async (id: number) => {
+        if (window.confirm('Bạn có chắc chắn muốn xóa môn học này?')) {
+            await courseApi.deleteCourse(id);
+            refetch();
+        }
     };
 
     return (
-        <div style={{ padding: 24, fontFamily: 'sans-serif', maxWidth: 800, margin: '0 auto' }}>
-            <h1>Danh sach mon hoc</h1>
-            <SearchBox onSearch={handleSearch} />
+        <div style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
+            <h1>Danh sách môn học</h1>
+            <CourseForm
+                editingCourse={editingCourse}
+                onSubmit={handleSaveCourse}
+                onCancel={() => setEditingCourse(null)}
+            />
+
+            {/* Sửa prop thành onSearch để khớp với SearchBox.tsx */}
+            <SearchBox onSearch={setKeyword} />
+
             <div style={{ marginTop: 16 }}>
                 <CourseList
                     courses={courses}
                     state={state}
                     errorMessage={errorMessage}
                     onRetry={refetch}
+                    onEdit={setEditingCourse}
+                    onDelete={handleDeleteCourse}
                 />
             </div>
-            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
         </div>
     );
 }
-
-export default App;

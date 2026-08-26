@@ -1,3 +1,4 @@
+// path: crs-frontend/src/types/course.ts
 export interface Course {
     id: number;
     tenMonHoc: string;
@@ -6,10 +7,8 @@ export interface Course {
     soChoConLai: number;
 }
 
-export interface PagedResponse<T> {
-    content: T[];
-    totalElements: number;
-    totalPages: number;
-    number: number; // trang hien tai (bat dau tu 0)
-    size: number;
+export interface CourseFormValues {
+    tenMonHoc: string;
+    soTinChi: number;
+    soChoToiDa: number;
 }
