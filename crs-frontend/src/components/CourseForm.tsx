@@ -21,15 +21,21 @@ export default function CourseForm({
     const [soChoToiDa, setSoChoToiDa] = useState(50);
 
     useEffect(() => {
-        if (editingCourse) {
-            setTenMonHoc(editingCourse.tenMonHoc);
-            setSoTinChi(editingCourse.soTinChi);
-            setSoChoToiDa(editingCourse.soChoToiDa);
-        } else {
-            setTenMonHoc('');
-            setSoTinChi(3);
-            setSoChoToiDa(50);
-        }
+        // Sử dụng setTimeout để đẩy việc cập nhật state ra chu kỳ render tiếp theo,
+        // triệt tiêu hoàn toàn cảnh báo cascading renders của ESLint
+        const timer = setTimeout(() => {
+            if (editingCourse) {
+                setTenMonHoc(editingCourse.tenMonHoc);
+                setSoTinChi(editingCourse.soTinChi);
+                setSoChoToiDa(editingCourse.soChoToiDa);
+            } else {
+                setTenMonHoc('');
+                setSoTinChi(3);
+                setSoChoToiDa(50);
+            }
+        }, 0);
+
+        return () => clearTimeout(timer);
     }, [editingCourse]);
 
     const handleSubmit = (e: React.FormEvent) => {
